@@ -1,0 +1,15 @@
+<div class="dialog-content">
+  <header class="apply-padding stationary">
+    <h5><iron-icon icon="tab" class="primary-icon"></iron-icon> Select New Page Template</h5>
+  </header>
+  <section class="flex-container templates-container">
+    {#templates}
+      <div class="template" data-template="{id}">
+         <h5>{name}</h5>
+         <img src="{image}">
+         <paper-button data-template-button="{id}" raised>Select</paper-button>
+      </div>
+    {/templates}
+  </section>
+
+</div>

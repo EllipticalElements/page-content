@@ -1,0 +1,41 @@
+<div class="dialog-content">
+  <header class="apply-padding stationary">
+    <div class="flex-container space-between">
+      <h5><span class="blue">{count}</span> Menu Categories</h5>
+      <md-icon-label icon="add" label="Add" class="icon-action-label" category-add></md-icon-label>
+    </div>
+    <span class="size-14 gray">Add, update and delete menu categories.</span>
+  </header>
+  <section class="flex-container flex-wrap pages-container categories no-padding" categories-container>
+    <silicon-form disable-warning="true" class="padding-left two hide" category-form>
+      <form role="form" method="post" class="flex-column-container form-width">
+        <md-input icon="mode-edit" prefix="prefix" type="text" data-id="id" data-name="id" label="Category" required="true"></md-input>
+        <md-checkbox data-id="showInMenu" data-name="showInMenu"  label="Show in Menu"></md-checkbox>
+        <md-number icon="menu" prefix="prefix" type="text" data-id="order" data-name="order" label="Menu Order" data-value="10"></md-number>
+        <md-submit raised="true" class="margin-top" category-submit>Add</md-submit>
+      </form>
+    </silicon-form>
+    <div class="categories-content-container full-width">
+    {#categories}
+      <div class="page" data-category-section="{id}">
+        <div class="actions">
+          <iron-icon icon="save" class="action-icon" data-save-category="{id}"></iron-icon>
+          <iron-icon icon="delete" class="action-icon" data-delete-category="{id}"></iron-icon>
+        </div>
+        <div class="summary">
+          <md-input icon="mode-edit" prefix="prefix" type="text" data-id="id" data-name="id" label="Category" data-value="{id}"></md-input>
+          <div class="size-small margin-bottom-zero">
+            <md-checkbox data-id="showInMenu" data-name="showInMenu" data-checked="{showInMenu}" label="Show in Menu"></md-checkbox>
+          </div>
+          <div class="size-small margin-bottom-zero">
+            <md-number icon="menu" prefix="prefix" type="text" data-id="order" data-name="order" label="Menu Order" data-value="{order}"></md-number>
+          </div>
+        </div>
+      </div>
+    {/categories}
+    {^categories}
+      <p class="message">There are currently no categories available...</p>
+    {/categories}
+  </div>
+  </section>
+</div>

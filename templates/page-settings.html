@@ -1,0 +1,44 @@
+
+<div class="dialog-content">
+  <header class="apply-padding stationary">
+    <h5><span class="icon-settings primary-icon"></span> Page Settings</h5>
+    <md-icon-label icon="arrow-back" label="Back" class="stationary-icon icon-action-label {hideBack}" settings-exit></md-icon-label>
+  </header>
+  <section class="apply-padding-two section-padding-top">
+    {#settings}
+      <silicon-form disable-warning="true">
+        <form role="form" method="put" class="flex-column-container form-width">
+        <input type="hidden" id="id" name="id" value="{id}">
+        <md-input icon="mode-edit" prefix="prefix" type="text" data-id="title" data-name="title" label="Page Title" data-value="{title}"></md-input>
+        <md-checkbox data-id="isPublished" data-name="isPublished" data-checked="{isPublished}" label="Published"></md-checkbox>
+        <md-checkbox data-id="showInMenu" data-name="showInMenu" data-checked="{showInMenu}" label="Show in Menu"></md-checkbox>
+        <md-number icon="menu" prefix="prefix" type="text" data-id="menuOrder" data-name="menuOrder" label="Menu Order" data-value="{menuOrder}"></md-number>
+          <md-select prefix-icon="border-style" prefix="prefix" data-value="{template}" data-id="template" data-name="template" label="Template">
+            <select>
+              {#templates}
+                <option value="{.}">{.}</option>
+              {/templates}
+            </select>
+          </md-select>
+          <md-select prefix-icon="brush" prefix="prefix" data-value="{cssClass}" data-id="cssClass" data-name="cssClass" label="Css Style" class="show-{cssOptionsLength}">
+            <select>
+              {#cssClassOptions}
+                <option value="{.}">{.}</option>
+              {/cssClassOptions}
+            </select>
+          </md-select>
+          <md-select prefix-icon="mode-edit" prefix="prefix" data-value="{category}" data-id="category" data-name="category" label="Category">
+            <select>
+              {#categories}
+                <option value="{id}">{id}</option>
+              {/categories}
+            </select>
+          </md-select>
+          <md-textarea prefix="prefix" icon="mode-edit" data-id="keywords" data-name="keywords" label="Keywords" class="margin-top" data-value="{keywords}"></md-textarea>
+        <md-input icon="date-range" prefix="prefix" type="text" readonly="true" data-id="dateCreated" data-name="dateCreated" label="Date Created" data-value="{@formatDate value="{dateCreated}" /}"></md-input>
+        <md-input icon="info-outline" prefix="prefix" type="text" data-id="version" data-name="version" label="Version" data-value="{version}" readonly="true"></md-input>
+        </form>
+      </silicon-form>
+    {/settings}
+  </section>
+</div>

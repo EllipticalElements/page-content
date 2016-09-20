@@ -1,0 +1,1881 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../gsap-import/gsap-import.html">
+<link rel="stylesheet" href="styles.css">
+<link rel="import" href="../elliptical-polymer-behaviors/component-behavior.html">
+<link rel="import" href="../elliptical-polymer-behaviors/history-behavior.html">
+<link rel="import" href="../elliptical-polymer-behaviors/service-behavior.html">
+<link rel="import" href="../elliptical-polymer-behaviors/viewdata-behavior.html">
+<link rel="import" href="../elliptical-polymer-behaviors/async-behavior.html">
+<link rel="import" href="../elliptical-date-helpers/elliptical-date-helpers.html">
+<link rel="import" href="../media-manager/media-manager.html">
+<link rel="import" href="../paper-fab/paper-fab.html">
+<link rel="import" href="../paper-fab-transitions/paper-fab-morph.html">
+<link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="../md-bottom-bar/md-bottom-bar.html">
+<link rel="import" href="../md-bottom-menu/md-bottom-menu.html">
+<link rel="import" href="../md-dialog/md-dialog.html">
+<link rel="import" href="../md-input/md-input.html">
+<link rel="import" href="../md-input/md-number.html">
+<link rel="import" href="../md-input/md-checkbox.html">
+<link rel="import" href="../md-input/md-search.html">
+<link rel="import" href="../md-input/md-select.html">
+<link rel="import" href="../md-input/md-textarea.html">
+<link rel="import" href="../md-submit/md-submit.html">
+<link rel="import" href="../silicon-form/silicon-form.html">
+<link rel="import" href="../content-components/content-components.html">
+
+<!--
+  css variables
+  --page-content-fab-background: #60bc57
+  --page-content-icon-label-active-color:#1E88E5
+  --page-content-transition: all 0.25s linear
+-->
+
+<style>
+  paper-toast {
+    z-index: 99999;
+  }
+</style>
+
+<dom-module id="page-content">
+  <style>
+    :host md-icon-label {
+      --md-icon-label-active-color:var(--page-content-icon-label-active-color, #1E88E5);
+    }
+
+    :host md-bottom-bar{
+      margin-bottom:-60px;
+      opacity:0;
+      transition: var(--page-content-transition, all 0.15s linear);
+    }
+
+    :host md-bottom-bar.active{
+      margin-bottom:0;
+      opacity:1;
+    }
+
+    :host paper-fab{
+      position:fixed;
+      bottom:32px;
+      right:32px;
+      --paper-fab-background:var(--page-content-fab-background, #60bc57);
+      transition: var(--page-content-transition, all 0.15s linear);
+    }
+
+    :host paper-fab.hide-fab{
+      opacity:0;
+    }
+
+    :host paper-fab[elevation="1"]{
+      box-shadow: 0 6px 10px 0 rgba(0,0,0,0.3);
+    }
+
+  </style>
+  <template>
+    <md-dialog id="dialog"></md-dialog>
+    <media-manager class="hide" id="mediaManager" use-query-string="[[useQueryString]]"></media-manager>
+    <paper-fab icon="create" id="fabAction" on-tap="_onFabAction" class="hide-fab"></paper-fab>
+    <md-bottom-bar id="bottomBar">
+      <grid-row>
+        <grid-columns class="default-12">
+          <md-icon-label icon="image:add-a-photo" label="Media" data-id="media" id="mediaManagerIcon"></md-icon-label>
+          <md-icon-label icon="visibility-off" label="Toggle" class="disable-active-state" id="iconVisibility" data-id="visibility"></md-icon-label>
+          <md-icon-label icon="social:pages" label="Pages" data-id="pages" id="pagesIcon"></md-icon-label>
+          <md-icon-label icon="editor:publish" label="Publish" class="disable-active-state" data-id="publish"></md-icon-label>
+          <md-icon-label icon="exit-to-app" label="Exit" class="disable-active-state" data-id="exit" on-tap="_onExit"></md-icon-label>
+        </grid-columns>
+      </grid-row>
+    </md-bottom-bar>
+    <md-bottom-menu id="bottomMenu" menu-height="320px">
+      <bottom-menu data-id="pages" title="Pages">
+        <md-icon-label icon="open-in-new" label="New" modal-on-close="true" data-id="new"></md-icon-label>
+        <md-icon-label icon="drafts" label="Drafts" modal-on-close="true" data-id="drafts"></md-icon-label>
+        <md-icon-label icon="folder" label="Published" modal-on-close="true" data-id="pages"></md-icon-label>
+        <md-icon-label icon="settings" label="Settings" modal-on-close="true" data-id="settings"></md-icon-label>
+        <md-icon-label icon="save" label="Save" data-id="save"></md-icon-label>
+        <md-icon-label icon="delete" label="Delete" data-id="delete"></md-icon-label>
+        <md-icon-label icon="view-list" label="Categories" modal-on-close="true" data-id="categories"></md-icon-label>
+      </bottom-menu>
+    </md-bottom-menu>
+  </template>
+</dom-module>
+<script>
+
+  Polymer({
+
+    is: 'page-content',
+
+    behaviors: [Elliptical.ComponentBehavior, Elliptical.HistoryBehavior, Elliptical.ServiceBehavior,Elliptical.ViewDataBehavior,Elliptical.AsyncBehavior],
+
+    properties: {
+
+      service: {
+        type: String,
+        value: 'Page'
+      },
+
+      pageTemplateService: {
+        type: String,
+        value: 'PageTemplate'
+      },
+
+      pageCategoryService: {
+        type: String,
+        value: 'PageCategory'
+      },
+
+      templatePath: {
+        type: String,
+        value: 'components.page-content.templates.'
+      },
+
+      pageRoute: {
+        type: String,
+        value: '/Page/Index'
+      },
+
+      pageSize: {
+        type: Number,
+        value: 50
+      },
+
+      pageId: {
+        type: String,
+        value: null
+      },
+
+      pageTitle:{
+        type:String,
+        value:null
+      },
+
+      dataBindComponents:{
+        type:Boolean,
+        value:false
+      },
+
+      viewDataProp:{
+        type:String,
+        value:null
+      },
+
+      disableHistory: {
+        type: Boolean,
+        value: false
+      },
+
+      contentPlaceholderSelector: {
+        type: String,
+        value: '[content-placeholder]'
+      },
+
+      useQueryString: {
+        type: Boolean,
+        value: false
+      },
+
+      disablePageMode: {
+        type: Boolean,
+        value: false
+      },
+
+      disableKeyLowerCase: {
+        type: Boolean,
+        value: false
+      },
+
+      timeoutDelay:{
+        type:Number,
+        value:200
+      },
+
+      serviceDelay:{
+        type:Number,
+        value:150
+      },
+
+      _tl: {
+        type: Object,
+        value: null
+      },
+
+      _dialogWidth: {
+        type: String,
+        value: '500px'
+      },
+
+      _dialogHeight: {
+        type: String,
+        value: '400px'
+      },
+
+      _template: {
+        type: Object,
+        value: null
+      },
+
+      _newPageTitle: {
+        type: String,
+        value: null
+      },
+
+      _newPageId: {
+        type: String,
+        value: null
+      },
+
+      _newPageCategory:{
+        type: String,
+        value: null
+      },
+
+      _newPageKeywords:{
+        type: String,
+        value: null
+      },
+
+      _newPageTemplate: {
+        type: String,
+        value: null
+      },
+
+      _pageService: {
+        type: Object,
+        value: null
+      },
+
+      _pageCategoryService: {
+        type: Object,
+        value: null
+      },
+
+      _pageTemplateService: {
+        type: Object,
+        value: null
+      },
+
+      _templateNewPageTitle: {
+        type: String,
+        value: 'new-page-title'
+      },
+
+      _templateNewPageSelectTemplate: {
+        type: String,
+        value: 'new-page-select-template'
+      },
+
+      _templateDrafts: {
+        type: String,
+        value: 'drafts-view'
+      },
+
+      _templatePages: {
+        type: String,
+        value: 'pages-view'
+      },
+
+      _templateSettings: {
+        type: String,
+        value: 'page-settings'
+      },
+
+      _templateDelete: {
+        type: String,
+        value: 'deleted-page'
+      },
+
+      _isEditMode: {
+        type: Boolean,
+        value: false
+      },
+
+      _isCategoryAdd:{
+        type:Boolean,
+        value:false
+      },
+
+      _pagesType:{
+        type:String,
+        value:null
+      }
+
+    },
+
+    listeners: {},
+
+    /**
+     *  Ready
+     */
+    ready: function () {
+      //if disablePageMode is set, disable history
+      if(this.disablePageMode) this.disableHistory=true;
+      //init the page components edit state
+      this._initEditMode();
+      //init the toolbar display state
+      this._initUIDisplayMode();
+      this._template = elliptical.extensions.template;
+      this._tl = new TimelineMax();
+      this._events();
+      //if history, activate single page behavior for content pages
+      if (!this.disableHistory) this._historyInit();
+      //init service injection
+      this._setInjectedServices();
+      //if no page id defined, set page id from location action
+      if(!this.pageId)  this._setPageId();
+      this._setAsync();
+      if(this.dataBindComponents) {
+        if(this.viewDataProp){
+          this._setViewData();
+          this._bindPageComponentsFromViewData(this.viewDataProp);
+        } else this._bindPageComponentsFromService();
+      }
+
+    },
+
+    /**
+     *  Events
+     */
+    _events: function () {
+      var click = this._data.click;
+      this._event(this.element, 'bottom-bar-press', this._onBottomBarPress.bind(this));
+      this._event(this.element, 'bottom-menu-press', this._onBottomMenuPress.bind(this));
+      this._event(this.element, 'bottom-menu-hide', this._onBottomMenuHide.bind(this));
+      this._event(this.element, 'md-dialog-cancel', this._onDialogCancel.bind(this));
+      this._event(this.element, 'md-dialog-action', this._onDialogAction.bind(this));
+      this._event(this.element, 'md-input-change', this._onInputTitleChange.bind(this));
+      this._event(this.element, click, '[data-template-button]', this._onTemplateButtonSelect.bind(this));
+      this._event(this.element, click, '[refresh]', this._onSearchRefresh.bind(this));
+      this._event(this.element, click, '[data-page]', this._onPageChange.bind(this));
+      this._event(this.element, 'md-search-changed', this._onSearchQuery.bind(this));
+      this._event(this.element, click, '[data-page-link]', this._onPageLink.bind(this));
+      this._event(this.element, 'media-manager-hide', this._onMediaManagerHide.bind(this));
+      this._event(this.element, click, '[category-add]', this._onCategoryAdd.bind(this));
+      this._event(this.element, click, '[category-submit]', this._onCategorySubmit.bind(this));
+      this._event(this.element, click, '[data-view-settings]', this._onViewSettings.bind(this));
+      this._event(this.element, click, '[settings-exit]', this._onExitSettings.bind(this));
+      this._event(this.element, click, '[data-save-category]', this._onCategorySave.bind(this));
+      this._event(this.element, click, '[data-delete-category]', this._onCategoryDelete.bind(this));
+    },
+
+    /********************* EVENT HANDLERS *****************************************************************************/
+
+    /**
+     *  bottom-menu-press event handler
+     *   @param {object} event
+     */
+    _onBottomBarPress: function (event) {
+      var detail = event.detail;
+      var id = detail.id;
+      switch (id) {
+        case 'pages':
+          this.$.bottomMenu.show(id);
+          break;
+        case 'visibility':
+          this._onVisibilityChange();
+          break;
+        case 'publish':
+          this._publishPageContent();
+          break;
+        case 'media':
+          this._showMediaManager();
+          break;
+      }
+    },
+
+
+    /**
+     *  bottom-menu-press intermediary handler
+     *   @param {object} event
+     */
+    _onBottomMenuPress: function (event) {
+      var templateId;
+      this.$.bottomBar.clearActive();
+      var id = event.detail.id;
+      switch (id) {
+        case 'new':
+          this._newPageOpenDialog();
+          break;
+        case 'drafts':
+          templateId = this.templatePath + this._templateDrafts;
+          this._pagesOpenDialog(false, templateId, 'drafts',false);
+          break;
+        case 'pages':
+          templateId = this.templatePath + this._templatePages;
+          this._pagesOpenDialog(true, templateId, 'pages',false);
+          break;
+        case 'settings':
+          this._pageSettingsDialog(this.pageId);
+          break;
+        case 'delete':
+          this._pageDelete(this.pageId);
+          break;
+        case 'save':
+          this._savePageContent();
+          break;
+        case 'categories':
+          this._categoriesOpenDialog();
+          break;
+      }
+    },
+
+
+    /**
+     *  md-dialog-action intermediary handler
+     * @param data
+     * @private
+     */
+    _onDialogAction: function (data) {
+      var dialog = this.$.dialog;
+      var id= dialog.identifier;
+      switch (id) {
+        case 'new page':
+          this._newPageTitleSubmit(data);
+          break;
+        case 'create':
+          this._newPageCreate(data);
+          break;
+        case 'delete-pages':
+          this._deletePages('pages');
+          break;
+        case 'delete-drafts':
+          this._deletePages('drafts');
+          break;
+        case 'settings':
+          this._pageSettingsSave();
+          break;
+        case 'settings-return':
+          this._pageSettingsSaveReturn();
+          break;
+        case 'category':
+          this._categoryDelete();
+          break;
+      }
+    },
+
+
+    /**
+     *  bottom-menu-hide handler
+     */
+    _onBottomMenuHide: function () {
+      this.$.bottomBar.clearActive();
+    },
+
+
+    /**
+     *  md-dialog-cancel handler
+     */
+    _onDialogCancel: function () {
+      this._cancelDialog();
+    },
+
+
+    /**
+     * md-input-change handler
+     * @param data
+     * @private
+     */
+    _onInputTitleChange: function (data) {
+      var id = data.detail.id;
+      if (id === 'newPageTitle') {
+        var target = data.target;
+        var value = target.value;
+        var label = target.label;
+        if (label === 'Required') target.label = 'Page Title';
+        if (value === '') {
+          target.label = 'Required';
+          target.setError();
+        }
+      }
+    },
+
+
+    /**
+     *  '[data-template-button]' handler
+     *   @param {object} event
+     */
+    _onTemplateButtonSelect: function (event) {
+      var target = event.target;
+      var $target = $(target);
+      this._newPageTemplate = target.dataset.templateButton;
+      var container = $target.parents('.templates-container');
+      var templates = container.find('.template');
+      templates.removeClass('active');
+      var parent = $target.parents('[data-template]');
+      parent.addClass('active');
+      var dialog = this.$.dialog;
+      dialog.enableAction();
+    },
+
+
+    /**
+     *  Search refresh handler
+     *   @param {object} event
+     */
+    _onSearchRefresh: function (event) {
+      var target = event.target;
+      var id = target.dataset.id;
+      var templateId = (id === 'page') ? 'pages-view' : 'drafts-view';
+      var isPublished = (id === 'page');
+      templateId = this.templatePath + templateId;
+      this._loadPageChange(isPublished, templateId, 1, undefined, '');
+    },
+
+
+    /**
+     *  Page create error handler
+     *   @param {object} err
+     */
+    _onPageCreateError: function (err) {
+      var Notify = this._notifyService;
+      Notify.show('Error creating page: ' + err.message);
+    },
+
+
+    /**
+     *  Page create success handler
+     *   @param {string} id
+     */
+    _onPageCreateSuccess: function (id) {
+      this.pageId=id;
+      var Location = this._locationService;
+      this._hideDialog();
+      this._resetPrivateVariables();
+      Location.href = this.pageRoute + '/' + id;
+    },
+
+
+    /**
+     *  Pagination change handler
+     *   @param {object} event
+     */
+    _onPageChange: function (event) {
+      var target = event.target;
+      var page = target.dataset.page;
+      page = parseInt(page);
+      var type = target.dataset.type;
+      var isPublished = (type === 'published');
+      var templateId = (isPublished) ? 'pages-view' : 'drafts-view';
+      templateId = this.templatePath + templateId;
+      this._loadPageChange(isPublished, templateId, page, undefined, '');
+    },
+
+
+    /**
+     *  Search query handler
+     *  @param {object} event
+     */
+    _onSearchQuery: function (event) {
+      var target = event.target;
+      var type = target.dataset.type;
+      var detail = event.detail;
+      var query ={'sw_title':detail.value};
+      var isPublished = (type === 'published');
+      var templateId = (isPublished) ? 'pages-view' : 'drafts-view';
+      templateId = this.templatePath + templateId;
+      this._loadPageChange(isPublished, templateId, 1, query, detail.value);
+    },
+
+
+    /**
+     *  On deleted pages handler
+     *  @param {string} msg
+     *  @param {type} type
+     */
+    _onDeletedPages: function (msg, type) {
+      this._showNotification(msg);
+      var isPublished = (type === 'pages');
+      var templateId = (isPublished) ? 'pages-view' : 'drafts-view';
+      templateId = this.templatePath + templateId;
+      this._loadPageChange(isPublished, templateId, 1, {}, '');
+    },
+
+    /**
+     *   Service error handler
+     *   @param {string} err
+     */
+    _onServiceError: function (err) {
+      var notify = this._notifyService;
+      notify.show(err);
+      this._cancelDialog();
+    },
+
+
+    /**
+     *   Pages link click handler
+     */
+    _onPageLink: function (event) {
+      var target = event.target;
+      var id = target.dataset.pageLink;
+      if (id) this._goTo(id);
+      this._hideDialog();
+    },
+
+
+    /**
+     *  Visibility toggle handler
+     */
+    _onVisibilityChange: function () {
+      var icon = 'visibility-off';
+      if (this._isEditMode) this._resetEditMode();
+      else {
+        this._setEditMode();
+        icon = 'visibility';
+      }
+      this.$.bottomBar.toggleIcon('visibility', icon);
+    },
+
+
+    /**
+     *  Media Manager Hide
+     */
+    _onMediaManagerHide: function () {
+      this.$.mediaManagerIcon.classList.remove('active');
+
+    },
+
+
+    /**
+     *  On fab button action handler
+     *  @param event {object}
+     */
+    _onFabAction:function(event){
+      var self=this;
+      this._setSessionDisplayMode(true);
+      this._hideFabButton();
+      setTimeout(function(){
+        self._showBottomBar();
+      },100);
+    },
+
+
+    /**
+     *  On exit handler
+     *  @param event {object}
+     */
+    _onExit:function(event){
+      var self=this;
+      this._setSessionDisplayMode(false);
+      this._resetEditModeVisibility();
+      this._hideBottomBar();
+      setTimeout(function(){
+        self._showFabButton();
+      },100);
+    },
+
+
+    /**
+     *  On category add handler
+     *  @param event {object}
+     */
+    _onCategoryAdd:function(event){
+      var target=event.currentTarget;
+      var form=document.querySelector('[category-form');
+      var container=document.querySelector('.categories-content-container');
+      if(this._isCategoryAdd){
+        this._isCategoryAdd=false;
+        target.label='Add';
+        target.icon='add';
+        if(form) form.classList.add('hide');
+        if(container) container.classList.remove('hide');
+      }else{
+        this._isCategoryAdd=true;
+        target.label='Cancel';
+        target.icon='cancel';
+        if(form) form.classList.remove('hide');
+        if(container) container.classList.add('hide');
+      }
+    },
+
+
+    /**
+     *  On category submit handler
+     *  @param event {object}
+     */
+    _onCategorySubmit:function(event){
+      this._categoryAdd();
+    },
+
+
+    /**
+     *  On view settings handler
+     */
+    _onViewSettings:function(event){
+      var self=this;
+      var target=event.currentTarget;
+      var id=target.dataset.viewSettings;
+      this._pagesType=target.dataset.type;
+      this._pageSettingsRender(id,'',function(err,out){
+        self._openDialog(out,'Save','settings-return',null,false,700,600,true,true,false);
+      });
+    },
+
+
+    /**
+     *  On exit settings handler
+     */
+    _onExitSettings:function(event){
+      var props=this._getPageTemplateProps();
+      this._pagesOpenDialog(props.isPublished, props.templateId, props.type,true);
+    },
+
+
+    /**
+     *  On category save handler
+     *  @param event {object}
+     *
+     */
+    _onCategorySave:function(event){
+      var target=event.target;
+      var id=target.dataset.saveCategory;
+      var container=$(target).parents('[data-category-section="' + id + '"]');
+      var input=container.find('md-input');
+      var number=container.find('md-number');
+      var ckbox=container.find('md-checkbox');
+      var category={
+        id:input[0].value,
+        order:parseInt(number[0].getValue()),
+        showInMenu:ckbox[0].isChecked()
+      };
+
+      if(id.toLowerCase()===category.id.toLowerCase()) this._saveCategory(category);
+      else this._deleteAndSaveCategory(id,category);
+    },
+
+
+    /**
+     *  On category delete handler
+     *  @param event {object}
+     *
+     */
+    _onCategoryDelete:function(event){
+      var self=this;
+      var target=event.target;
+      var id=target.dataset.deleteCategory;
+      var container=$(target).parents('[data-category-section="' + id + '"]');
+      container.remove();
+      this._deleteCategory(id,function(err,data){
+        var msg=(err) ? 'Error: Deleting category' : 'Category successfully deleted';
+        self._showNotification(msg);
+        self._fireEvent('category-delete',{category:id});
+      });
+    },
+
+    /***************************** PRIVATE METHODS ********************************************************************/
+
+    /**
+     *  Initializes the page edit mode
+     *  Session Edit Mode: whether content components are in edit state
+     */
+    _initEditMode: function () {
+      if(this.disablePageMode){
+        this._isEditMode=false;
+        this._setSessionEditMode(false);
+      }else this._isEditMode = this._getSessionEditMode();
+      this._setEditModeVisibility();
+    },
+
+
+    /**
+     *  Initializes the page edit UI(bottom bar, paper fab action)
+     *  Session Display Mode: whether fab button or toolbar is shown
+     */
+    _initUIDisplayMode:function(){
+      var displayMode=this._getSessionDisplayMode();
+      if(displayMode)this._showBottomBar();
+      else this._showFabButton();
+      if(this.disablePageMode) this.$.pagesIcon.classList.add('hide');
+    },
+
+
+    /**
+     *  Initialize/set the web component injected services
+     */
+    _setInjectedServices:function(){
+      this._servicesInit();
+      this._pageService = this.$service(this.service);
+      this._pageTemplateService = this.$service(this.pageTemplateService);
+      this._pageCategoryService=this.$service(this.pageCategoryService);
+    },
+
+
+    /**
+     * Toggle page components to edit mode
+     */
+    _setEditMode: function () {
+      var placeholder = this._getPlaceholder();
+      placeholder.classList.add('edit-mode');
+      this._isEditMode = true;
+      this._setSessionEditMode(true);
+      var components = $(placeholder).find('[content-component]');
+      $.each(components, function (i, component) {
+        if(component.showComponent) component.showComponent();
+      });
+    },
+
+
+    /**
+     *  Hide fab button
+     */
+    _hideFabButton:function(){
+      this.$.fabAction.classList.add('hide-fab');
+    },
+
+
+    /**
+     *  Show fab button
+     */
+    _showFabButton:function(){
+      this.$.fabAction.classList.remove('hide-fab');
+    },
+
+
+    /**
+     *  Hide bottom bar
+     */
+    _hideBottomBar:function(){
+      this.$.bottomBar.classList.remove('active');
+    },
+
+
+    /**
+     *  Show bottom bar
+     */
+    _showBottomBar:function(){
+      this.$.bottomBar.classList.add('active');
+    },
+
+
+    /**
+     *  Get session edit mode
+     */
+    _getSessionEditMode: function () {
+      var result = sessionStorage.getItem('pageEditMode');
+      return (result === 'true');
+    },
+
+
+    /**
+     *  Get session UI display mode
+     */
+    _getSessionDisplayMode: function () {
+      var result = sessionStorage.getItem('pageDisplayMode');
+      return (result === 'true');
+    },
+
+    /**
+     *  Get the page placeholder element
+     *  @returns {object}
+     */
+    _getPlaceholder:function(){
+      var selector = this.contentPlaceholderSelector;
+      var placeholder = document.querySelector(selector);
+      if(!placeholder) return document.querySelector('body');
+      else return placeholder;
+    },
+
+
+    /**
+     *  Save edit mode state in session storage
+     *  @param active {boolean}
+     */
+    _setSessionEditMode: function (active) {
+      sessionStorage.setItem('pageEditMode', active);
+    },
+
+
+    /**
+     *  Save display mode state in session storage
+     *  @param active {boolean}
+     */
+    _setSessionDisplayMode: function (active) {
+      sessionStorage.setItem('pageDisplayMode', active);
+    },
+
+
+    /**
+     * Toggle page components to default mode
+     */
+    _resetEditMode: function () {
+      var placeholder = this._getPlaceholder();
+      placeholder.classList.remove('edit-mode');
+      this._isEditMode = false;
+      this._setSessionEditMode(null);
+      var components = $(placeholder).find('[content-component]');
+      $.each(components, function (i, component) {
+        if(component.hideComponent) component.hideComponent();
+      });
+    },
+
+
+    /**
+     *  Set edit mode visibility
+     */
+    _setEditModeVisibility: function () {
+      var icon = 'visibility-off';
+      if (!this._isEditMode) this._resetEditMode();
+      else {
+        this._setEditMode();
+        icon = 'visibility';
+      }
+      this.$.bottomBar.toggleIcon('visibility', icon);
+    },
+
+
+    /**
+     *  Reset edit mode visibility
+     */
+    _resetEditModeVisibility:function(){
+      this._resetEditMode();
+      this.$.bottomBar.toggleIcon('visibility', 'visibility-off');
+    },
+
+
+    /**
+     *   Show notification
+     *   @param msg {string}
+     */
+    _showNotification: function (msg) {
+      var notify = this._notifyService;
+      notify.show(msg);
+    },
+
+
+    /**
+     *  Route to page
+     */
+    _goTo: function (id) {
+      this.pageId = id;
+      var url = this.pageRoute + '/' + id;
+      var Location = this._locationService;
+      Location.href = url;
+      this._getPage(id, function (err, p) {
+
+      });
+    },
+
+
+    /**
+     *  Set current page public prop
+     */
+    _setPageId: function () {
+      if (this.pageId) return;
+      var Location = this._locationService;
+      var params = Location.params(this.pageRoute + '/:id');
+      if (params) {
+        var id = params.id;
+        if (id) this.pageId = id;
+      }
+    },
+
+
+    /**
+     *  Set Html content of the placeholder selector
+     */
+    _setContent: function (html) {
+      var placeholder = document.querySelector(this.contentPlaceholderSelector);
+      placeholder.innerHTML = html;
+    },
+
+
+    /**
+     *  Set page components directly
+     *  @param page {object}
+     */
+    _setPageComponents:function(page){
+      var content=null;
+      if(page) content=page.content;
+      var components=this._getPageComponents();
+      $.each(components, function (i, component) {
+        var property = component.dataset.property;
+        var componentContent=null;
+        if(content) componentContent=content[property];
+        component.setContent(componentContent);
+      });
+    },
+
+    /**
+     *  Get page components
+     *  @returns {array}
+     */
+    _getPageComponents:function(){
+      var placeholder = this._getPlaceholder();
+      return $(placeholder).find('[content-component]');
+    },
+
+
+    /**
+     *  Get page component content property
+     */
+    _getPageContent: function () {
+      var content = {};
+      var components = this._getPageComponents();
+      $.each(components, function (i, component) {
+        var property = component.dataset.property;
+        content[property] = component.getContent();
+      });
+      return content;
+    },
+
+
+    /**
+     *  Get pages template props
+     *  @returns {object}
+     */
+    _getPageTemplateProps:function(){
+      var props={};
+      var type=this._pagesType;
+      props.type=type;
+      props.templateId=this.templatePath;
+      if(type==='drafts') {
+        props.templateId+=this._templateDrafts;
+        props.isPublished=false;
+      } else {
+        props.templateId+=this._templatePages;
+        props.isPublished=true;
+      }
+
+      return props;
+    },
+
+
+    /**
+     *  Reset private variables
+     */
+    _resetPrivateVariables: function () {
+      this._newPageTitle = null;
+      this._newPageId = null;
+      this._newPageTemplate = null;
+      this._isCategoryAdd=false;
+    },
+
+
+    /***************************** SERVICE CALLS ***********************************************************************/
+
+
+    /**
+     *  Return new page model
+     *  @returns {object}
+     */
+    _getPageModel: function () {
+      var page= {
+        id: null,
+        title: null,
+        category:null,
+        keywords:null,
+        isPublished: false,
+        isContentPage:true,
+        showInMenu: true,
+        menuOrder: 10,
+        dateCreated: null,
+        dateUpdated: null,
+        version: 0,
+        template: null,
+        cssClass: null,
+        content: null
+      };
+      if(this.disablePageMode) page.isContentPage=false;
+      return page;
+    },
+
+
+    /**
+     *   Fetch page by id
+     *   @param {string} id
+     *   @param {function} callback
+     *   @returns {function}
+     */
+    _getPage: function (id, callback) {
+      if (!this.disableKeyLowerCase) id = id.toLowerCase();
+      var params = {
+        id: id
+      };
+      var Page = this._pageService;
+      Page.get(params, callback);
+    },
+
+
+    /**
+     *   Fetch page by id
+     *   @param {string} id
+     *   @param {function} callback
+     *   @returns {function}
+     */
+    _getPageSettings: function (id, callback) {
+      if (!this.disableKeyLowerCase) id = id.toLowerCase();
+      var params = {
+        id: id
+      };
+      var Page = this._pageService;
+      Page.getSettings(params, callback);
+    },
+
+
+    /**
+     *  Get pages paginated service request
+     *   @param {boolean} isPublished
+     *   @param {number} pageNo
+     *   @param {object} query
+     *   @param {object} orderBy
+     *   @param {object} orderByDesc
+     *   @param {function} callback
+     *   @returns {function}
+     */
+    _getPages: function (isPublished, pageNo, query, orderBy, orderByDesc, callback) {
+      var params = {
+        isPublished: isPublished
+      };
+      var page = new this._pageService();
+      var baseUrl = this.pageRoute;
+      var pageSize = this.pageSize;
+      page.paginate({
+        baseUrl: baseUrl,
+        rawUrl: '',
+        pageSize: pageSize,
+        page: pageNo
+      })
+              .filter(query)
+              .orderBy(orderBy)
+              .orderByDesc(orderByDesc)
+              .get(params, callback);
+    },
+
+
+    /**
+     *  Save page entity
+     */
+    _savePage: function (entity, callback) {
+      if (!this.disableKeyLowerCase) entity.id = entity.id.toLowerCase();
+      var Page = this._pageService;
+      Page.put(entity, callback);
+    },
+
+
+    /**
+     *  Post page entity
+     */
+    _createPage: function (entity, callback) {
+      if (!this.disableKeyLowerCase) entity.id = entity.id.toLowerCase();
+      entity.isContentPage = !(this.disablePageMode);
+      var Page = this._pageService;
+      Page.post(entity, callback);
+    },
+
+
+    /**
+     *  Delete page entity
+     */
+    _deletePage: function (id, callback) {
+      if (!this.disableKeyLowerCase) id = id.toLowerCase();
+      var Page = this._pageService;
+      var params ={id:id};
+      Page.delete(params, callback);
+    },
+
+
+    /**
+     *  Get checked checkboxes
+     *  @returns {array}
+     */
+    _getCheckedIds: function (checked) {
+      var ids = [];
+      var length = checked.length;
+      for (var i = 0; i < length; i++) {
+        ids.push(checked[i].dataset.id);
+      }
+      return ids;
+    },
+
+
+    /**
+     *  Get page categories
+     *  @returns {function}
+     */
+    _getCategories:function(key,callback){
+      var PageCategory=this._pageCategoryService;
+      var pageCategory=new PageCategory();
+      pageCategory.orderBy(key)
+              .get({},callback);
+    },
+
+
+    /**
+     *  Delete page category by id
+     *  @param id {string}
+     *  @param callback {function}
+     */
+    _deleteCategory:function(id,callback){
+      var PageCategory = this._pageCategoryService;
+      var params ={id:id};
+      PageCategory.delete(params, callback);
+    },
+
+    /**
+     *  Replace page category prop w/ updated value
+     *  @param params {object}
+     *  @param callback {function}
+     */
+    _replaceCategory:function(params,callback){
+      var Page = this._pageService;
+      Page.replaceCategory(params, callback);
+    },
+
+    /**
+     *  Save category
+     *  @param entity {object}
+     */
+    _saveCategory:function(entity){
+      var self=this;
+      var msg;
+      var PageCategory = this._pageCategoryService;
+      PageCategory.put(entity, function(err,data){
+        if(!err) msg='Category successfully updated';
+        else msg='Error: Updating category';
+        self._showNotification(msg);
+      });
+    },
+
+    /**
+     *  Add category
+     *  @param entity {object}
+     *  @param callback {function}
+     */
+    _addCategory:function(entity,callback){
+      var PageCategory = this._pageCategoryService;
+      PageCategory.post(entity, callback);
+    },
+
+
+    /**
+     *  Delete then resave ctaegory entity
+     *  @param oldId {string}
+     *  @param entity {object}
+     */
+    _deleteAndSaveCategory:function(oldId,entity){
+      var self=this;
+      this._deleteCategory(oldId,function(err,data){
+        if(!err) {
+          self._addCategory(entity,function(err,d){
+            if(err) self._showNotification('Error: Updating category');
+            else{
+              var params={
+                oldCategory:oldId,
+                category:entity.id
+              };
+              self._replaceCategory(params,function(err,data){
+                if(err) self._showNotification('Error: Updating page category props');
+                else {
+                  self._showNotification('Category successfully updated');
+                  self._fireEvent('category-update',params);
+                }
+              });
+            }
+          });
+        }
+        else self._showNotification('Error: Updating category');
+      });
+    },
+
+
+    /**
+     *  Save settings
+     *  @param callback {function}
+     */
+    _saveSettings:function(callback){
+      var self=this;
+      var Page = this._pageService;
+      var form = document.querySelector('silicon-form');
+      if (form) {
+        form.submit(function (data) {
+          var settings = data.body;
+          Page.saveSettings(settings, callback);
+          self._fireEvent('page-publish',settings);
+        });
+      }
+    },
+
+
+    /**
+     *   Render pages/drafts
+     *   @param isPublished {boolean}
+     *   @param templateId {string}
+     *   @param type {string}
+     *   @param callback {function}
+     */
+    _pagesRender:function(isPublished, templateId, type,callback){
+      var paginationTemplateId = this.templatePath + 'pagination';
+      var template = this._template;
+      this._getPages(isPublished, 1, undefined, undefined, undefined, function (err, pages) {
+        template.render(templateId,
+                {
+                  pages: pages.data,
+                  pagination: pages.pagination,
+                  count: pages.pagination.count,
+                  paginationTemplate: paginationTemplateId,
+                  value: ''
+                }, callback);
+      });
+    },
+
+
+    /**
+     *  Render page settings
+     *  @param id {string}
+     *  @param hideBack {string}
+     *  @param callback {function}
+     */
+    _pageSettingsRender:function(id,hideBack,callback){
+      var templateId = this.templatePath + this._templateSettings;
+      var template = this._template;
+      this._getPageSettings(id, function (err, settings) {
+        template.render(templateId,
+                {
+                  settings: settings,
+                  hideBack:hideBack
+                }, callback);
+      });
+    },
+
+    /**
+     *  Render categories template
+     *  @param callback {function}
+     */
+    _categoriesRender:function(callback){
+      var template = this._template;
+      var templateId=this.templatePath + 'categories-view';
+      this._getCategories('order',function (err, data) {
+        var count;
+        if(data && data.length) count=data.length;
+        else count=0;
+        template.render(templateId,
+                {
+                  categories: data,
+                  count: count
+                }, callback);
+      });
+    },
+
+    /**
+     *  Directly bind page components from service on page load
+     */
+    _bindPageComponentsFromService:function(){
+      var self=this;
+      var delay=this.serviceDelay;
+      var id=this.pageId;
+      if(!id){
+        console.warn('WARNING: data binding page components through service call requires a page id set in the page-content element attribute');
+        return;
+      }
+      setTimeout(function(){
+        self._getPage(id,function(err,data){
+          self._setPageComponents(data);
+        });
+      },delay);
+
+    },
+
+    /**
+     *  Directly bind page components from viewData on page load
+     *  @param prop {string}
+     */
+    _bindPageComponentsFromViewData:function(prop){
+      var viewData=this._viewData;
+      var page=viewData.get(prop);
+      this._setPageComponents(page);
+    },
+
+
+    /***************************** DIALOG HELPERS **********************************************************************
+
+    /**
+     *  Cancel dialog
+     */
+    _cancelDialog: function () {
+      this.$.dialog.clearModals();
+      this.$.dialog.reset();
+      this._resetPrivateVariables();
+    },
+
+
+    /**
+     *  Hide dialog
+     */
+    _hideDialog: function () {
+      this.$.dialog.hide();
+      this._cancelDialog();
+    },
+
+
+    /**
+     *  Open dialog
+     *  @param out {string}
+     *  @param action {string}
+     *  @param identifier {string}
+     *  @param actionId {string}
+     *  @param isModal {boolean}
+     *  @param width {number}
+     *  @param height {number}
+     *  @param hasContainerPadding {boolean}
+     *  @param animate {boolean}
+     *  @param disableAction {boolean}
+     *  @param cancel {string}
+     */
+    _openDialog:function(out,action,identifier,actionId,isModal,width,height,hasContainerPadding,animate,disableAction,cancel){
+      var dialog = this.$.dialog;
+      dialog.setContent(out);
+      if(action) dialog.action = action;
+      else dialog.action=undefined;
+      if(!disableAction && action) dialog.enableAction();
+      if(disableAction) dialog.disableAction();
+      dialog.identifier = identifier;
+      if(cancel) dialog.cancel=cancel;
+      if(!hasContainerPadding) dialog.setNoContainerPadding();
+      if(actionId) dialog.setActionId(actionId);
+      else dialog.setActionId(undefined);
+      if(animate) dialog.animate(isModal,width,height);
+      else dialog.open(isModal, width, height);
+    },
+
+    /**
+     *  Set open dialog content
+     *  @param out {string}
+     */
+    _setDialogContent:function(out){
+      var dialog = this.$.dialog;
+      dialog.setContent(out);
+    },
+
+
+
+    /***************************** DIALOG ACTIONS **********************************************************************
+
+
+    /**
+     *   Load create new page in dialog
+     */
+    _newPageOpenDialog: function () {
+      var self=this;
+      var delay=this.timeoutDelay;
+      var template = this._template;
+      var templateId = this.templatePath + this._templateNewPageTitle;
+      setTimeout(function(){
+        self._getCategories('id',function(err,data){
+          template.render(templateId, {categories:data}, function (err, out) {
+            self._openDialog(out,'Continue','new page','new-page',false,600,500,true,false,false,'Cancel');
+          });
+        });
+      },delay);
+    },
+
+
+    /**
+     *   New page title submission handler
+     */
+    _newPageTitleSubmit: function () {
+      var input = this.querySelector('md-input[data-id="newPageTitle"]');
+      var keywordsInput = this.querySelector('md-textarea[data-id="keywords"]');
+      var selectInput=this.querySelector('md-select[data-id="category"]');
+      var title = input.value;
+      var keywords=keywordsInput.value;
+      var category=selectInput.value;
+      if(category==='') category=null;
+      if (title === '') {
+        input.label = 'Required';
+        input.setError();
+      } else this._newPageTitleVerify(input, title,category,keywords);
+    },
+
+
+    /**
+     *  Validate new page id
+     *  @param input {object}
+     *  @param title {string}
+     *  @param category {string}
+     *  @param keywords {string}
+     */
+    _newPageTitleVerify: function (input, title,category,keywords) {
+      var self = this;
+      var id = this._pageService.toId(title);
+      this._pageService.verify({id:id}, function (err, data) {
+        if (!err) self._newPageTemplateSelect(input, title, id,category,keywords);
+        else {
+          self._showNotification('Page title already exists');
+        }
+      });
+    },
+
+
+    /**
+     *  Load new page template selection in dialog
+     *  @param input {object}
+     *  @param title id {string}
+     *  @param id {string}
+     *  @param category {string}
+     *  @param keywords {string}
+     */
+    _newPageTemplateSelect: function (input, title, id,category,keywords) {
+      var self=this;
+      var template = this._template;
+      var templateId = this.templatePath + this._templateNewPageSelectTemplate;
+      this._newPageTitle = title;
+      this._newPageId = id;
+      this._newPageCategory=category;
+      this._newPageKeywords=keywords;
+      var templates = this._pageTemplateService.get();
+      template.render(templateId,{templates:templates}, function (err, out) {
+        self._openDialog(out,'Create','create',null,false,700,600,false,true,true,'Cancel');
+      });
+    },
+
+
+    /**
+     * Create the new page, route to new page
+     * @private
+     */
+    _newPageCreate: function () {
+      var self = this;
+      var title = this._newPageTitle;
+      var id = this._newPageId;
+      var templateId = this._newPageTemplate;
+      var objTemplate = this._pageTemplateService.getById(templateId);
+      var model = this._getPageModel();
+      model.id = id;
+      model.title = title;
+      model.template = templateId;
+      model.category=this._newPageCategory;
+      model.keywords=this._newPageKeywords;
+      model.content = objTemplate.placeholder;
+      this._createPage(model, function (err, data) {
+        if (!err) self._onPageCreateSuccess(id);
+        else self._onPageCreateError(err);
+      });
+    },
+
+
+
+    /**
+     *   Load pages/drafts in dialog
+     *   @param isPublished {boolean}
+     *   @param templateId {string}
+     *   @param type {string}
+     *   @param animate {boolean}
+     */
+    _pagesOpenDialog: function (isPublished, templateId, type,animate) {
+      var self = this;
+      var delay=this.timeoutDelay;
+      setTimeout(function(){
+        self._pagesRender(isPublished,templateId,type,function(err,out){
+          if (err) self._onServiceError('Error opening ' + type);
+          else self._openDialog(out,'Delete',type,'delete-' + type,false,700,500,false,animate,false,'Cancel');
+        });
+      },delay);
+    },
+
+
+    /**
+     *  Fetch a new paginated data for drafts or published
+     * @param isPublished {boolean}
+     * @param templateId {string}
+     * @param page {number}
+     * @param query {object}
+     * @param value {string}
+     * @private
+     */
+    _loadPageChange: function (isPublished, templateId, page, query, value) {
+      var self = this;
+      var dialog = this.$.dialog;
+      var template = this._template;
+      var paginationTemplateId = this.templatePath + 'pagination';
+      this._getPages(isPublished, page, query, undefined, undefined, function (err, pages) {
+        template.render(templateId, {
+          pages: pages.data,
+          pagination: pages.pagination,
+          count: pages.pagination.count,
+          paginationTemplate: paginationTemplateId,
+          value: value
+        }, function (err, out) {
+          if (err) self._showNotification('Error retrieving page');
+          else dialog.setContent(out);
+        })
+      });
+    },
+
+
+    /**
+     *  Delete pages
+     *  @param type {string}
+     *
+     */
+    _deletePages: function (type) {
+      var keyLowerCase = !(this.disableKeyLowerCase);
+      var container = $('[pages-container]');
+      if (!container[0]) return;
+      var checkBoxes = container.find('md-checkbox[checked]');
+      var ids = this._getCheckedIds(checkBoxes);
+      if (ids.length === 0) return;
+      var Service = this._pageService;
+      var notify = this._notityService;
+      var onDeletedPages = this._onDeletedPages.bind(this);
+      var Async = this._async.series;
+      var funcArray = [];
+      var fireEvent=this._fireEvent.bind(this);
+      ids.forEach(function (i) {
+        if (keyLowerCase) i = t.toLowerCase();
+        funcArray.push(function (callback) {
+          Service.delete({id:i}, callback);
+          fireEvent('page-delete',{id:i});
+        });
+      });
+      Async(funcArray, function (err, results) {
+        (err) ? notify.show('Error: Error deleting ' + type) : onDeletedPages(type + ' deleted successfully', type);
+      });
+    },
+
+
+    /**
+     *   Load page settings in dialog
+     *   @param id {string}
+     */
+    _pageSettingsDialog: function (id) {
+      var delay=this.timeoutDelay;
+      var self = this;
+      setTimeout(function(){
+        self._pageSettingsRender(id,'hide',function(err,out){
+          if (err) self._onServiceError('Error opening page settings.');
+          else self._openDialog(out,'Save','settings','settings',false,700,600,false,false,false,'Cancel');
+        });
+      },delay);
+    },
+
+
+    /**
+     *  Save page settings and close dialog
+     * @private
+     */
+    _pageSettingsSave: function () {
+      var self = this;
+      var Location = this._locationService;
+      this._saveSettings(function(err,data){
+        if (!err) {
+          self._hideDialog();
+          self._showNotification('Page settings saved');
+          Location.reload();
+        } else self._showNotification('Error: saving page settings failed');
+      });
+    },
+
+
+    /**
+     *  Save page settings and close dialog
+     * @private
+     */
+    _pageSettingsSaveReturn: function () {
+      var self = this;
+      var props=this._getPageTemplateProps();
+      this._saveSettings(function(err,data){
+        if (!err) {
+          self._showNotification('Page settings saved');
+          self._pagesOpenDialog(props.isPublished,props.templateId,props.type,true);
+        } else self._showNotification('Error: saving page settings failed');
+      });
+    },
+
+
+    /**
+     * Delete current page
+     * @private
+     */
+    _pageDelete: function (id) {
+      var self = this;
+      var template = this._template;
+      var templateId = this.templatePath + this._templateDelete;
+      this._deletePage(id, function (err, data) {
+        if (!err) {
+          template.render(templateId,{id:id}, function (err, out) {
+            if (!err) {
+              self._setContent(out);
+              self._showNotification('Page deleted successfully');
+              self._fireEvent('page-delete',{id:id});
+            }
+          });
+        } else self._showNotification('Error: deleting page failed');
+      });
+    },
+
+
+    /**
+     *  Save and publish page content
+     */
+    _publishPageContent: function () {
+      var self = this;
+      var id = this.pageId;
+      //get page
+      this._getPage(id, function (err, data) {
+        //if no error fetching and page data exists
+        if (!err && data) {
+          data.isPublished = true;
+          data.content = self._getPageContent();
+          //if not pages mode, set the bit to false
+          if(self.disablePageMode) data.isContentPage=false;
+          //save
+          self._savePage(data,function(err,page){
+            //if not error
+            if(!err){
+              self._showNotification('Page successfully published');
+              if (data.isContentPage) self._fireEvent('page-publish',data);
+            }else self._showNotification('Error: publishing page failed');
+          });
+        } else {
+          if (self.disablePageMode) self._createPartialPage();//else if disablePageMode set, pass off to method
+          else self._showNotification('Error: publishing page failed. Page does not exist.'); //else, failed to get page
+        }
+      });
+    },
+
+    /**
+     *  Create a non-content partial page
+     *
+     */
+    _createPartialPage:function(){
+      var self=this;
+      var data=this._getPageModel();
+      data.isContentPage=false;
+      data.isPublished=true;
+      data.content = self._getPageContent();
+      data.id=this.pageId;
+      if(this.pageTitle) data.title=this.pageTitle;
+      else data.title=this.pageId.replace(/-/g,'');
+      this._createPage(data,function(err,page){
+        //if not error
+        if(!err){
+          self._showNotification('Page successfully published');
+          self._fireEvent('page-publish',data);
+        }else self._showNotification('Error: publishing page failed');
+      });
+    },
+
+
+    /**
+     *   Save page content
+     */
+    _savePageContent: function () {
+      var self = this;
+      var id = this.pageId;
+      this._getPage(id, function (err, data) {
+        if (!err) {
+          data.content = self._getPageContent();
+          self._savePage(data);
+          self._showNotification('Page successfully saved');
+        } else self._showNotification('Error: page save failed');
+      });
+    },
+
+
+
+    /**
+     *   Load categories in dialog
+     */
+    _categoriesOpenDialog: function () {
+      var self = this;
+      var delay=this.timeoutDelay;
+      setTimeout(function(){
+        self._categoriesRender(function(err,out){
+          if (err) self._onServiceError('Error opening categories');
+          else self._openDialog(out,null,'category',null,false,700,500,false,false,false,'Close');
+        });
+      },delay);
+    },
+
+
+    /**
+     *  Add category
+     * @private
+     */
+    _categoryAdd: function () {
+      var self = this;
+      var PageCategory = this._pageCategoryService;
+      var form = document.querySelector('silicon-form[category-form]');
+      if (form) {
+        form.submit(function (data) {
+          var category = data.body;
+          category.order=parseInt(category.order);
+          category.showInMenu=(category.showInMenu==='true');
+          if(category.id) {
+            category.id.toLowerCase();
+            PageCategory.post(category,function(err,data){
+              if(err) self._showNotification('Error: Creating Category');
+              else{
+                self._categoriesRender(function(e,out){
+                  if(!err) {
+                    self._setDialogContent(out);
+                    self._isCategoryAdd=false;
+                    self._fireEvent('category-add',category);
+                  } else self._showNotification('Error: Getting Categories');
+                });
+              }
+            });
+          }else self._showNotification('Error: Category required');
+        });
+      }
+    },
+
+
+    /***************************** EVENT PUBLISHERS *******************************************************************/
+
+    /**
+     *  Publish event
+     *  @param evt {string}
+     *  @param data {object}
+     *
+     */
+    _fireEvent:function(evt,data){
+      var event='page-content-';
+      event+=evt;
+      this.fire(event,data);
+    },
+
+
+    /***************************** MEDIA MANAGER **********************************************************************/
+
+    /**
+     *
+     */
+    _showMediaManager: function () {
+      var mode = 'browse';
+      this.$.mediaManager.show({mode:mode});
+    },
+
+    /**
+     *
+     */
+    _hideMediaManager: function () {
+
+    }
+
+
+    /***************************** PUBLIC METHODS *********************************************************************/
+
+
+  });
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+
+<div class="dialog-content">
+  <header>
+    <h5><iron-icon icon="input" class="primary-icon"></iron-icon> Create New Page</h5>
+  </header>
+  <section class="form-width">
+    <md-input icon="mode-edit" prefix="prefix" type="text" data-id="newPageTitle" label="Page Title"></md-input>
+    <md-select prefix-icon="mode-edit" prefix="prefix" data-id="category" data-name="category" label="Category" class="margin-top">
+      <select>
+        <option value="">Select</option>
+        {#categories}
+          <option value="{id}">{id}</option>
+        {/categories}
+      </select>
+    </md-select>
+    <md-textarea prefix="prefix" icon="view-headline" data-id="keywords" data-name="keywords" label="Keywords" class="margin-top"></md-textarea>
+  </section>
+
+</div>

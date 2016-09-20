@@ -1,0 +1,487 @@
+
+.page-content{
+    font-family:'robotoregular';
+}
+
+.page-content b{
+    font-family:'robotomedium';
+}
+
+.page-content.home-flex-container{
+    display:-webkit-flex;
+    display:flex;
+    -webkit-flex-direction:column;
+    flex-direction:column;
+    -webkit-align-items: center;
+    align-items: center;
+}
+
+[content-placeholder] .md-content{
+    padding:0;
+    box-shadow:none;
+}
+
+[content-placeholder] .full-width{
+    width:100%;
+}
+
+[content-placeholder] .primary-color{
+    color:#4CAF50;
+}
+
+[content-placeholder] .gray{
+    color:#666;
+}
+
+[content-placeholder] .svg-icon{
+    width:350px;
+}
+
+[content-placeholder] .svg-icon.large{
+    width:450px;
+}
+
+[content-placeholder] .svg-icon.small{
+    width:260px;
+}
+
+[content-placeholder] .light-gray{
+    color:#999;
+}
+
+[content-placeholder] .off-white{
+    color:#ddd;
+}
+
+[content-placeholder] .blue{
+    color:#2196F3;
+}
+
+[content-placeholder] .light-blue{
+    color:#55bbeb;
+}
+
+[content-placeholder] .secondary-color{
+    color:#55bbeb;
+}
+
+[content-placeholder] .light-green{
+    color:#06b07d;
+}
+
+[content-placeholder] .show-0{
+    display:none;
+}
+
+[content-placeholder] .hide{
+    display:none;
+}
+
+[content-placeholder] .padding-top{
+    padding-top:1em;
+}
+
+[content-placeholder] .section-padding-top{
+    padding-top:100px;
+}
+
+[content-placeholder] .padding-top-two{
+    padding-top:2em;
+}
+
+[content-placeholder] .padding-top-three{
+    padding-top:3em;
+}
+
+[content-placeholder] .apply-margin{
+    margin-top:2em;
+}
+
+[content-placeholder] .size-small{
+    font-size:14px;
+}
+
+[content-placeholder] .space-between{
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+
+[content-placeholder] .center{
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+[content-placeholder] .align-center{
+    -webkit-align-items: center;
+    align-items: center;
+}
+
+[content-placeholder] .flex-container{
+    display:-webkit-flex;
+    display:flex;
+}
+
+[content-placeholder] .flex-wrap{
+    -webkit-flex-wrap:wrap;
+    flex-wrap:wrap;
+}
+
+[content-placeholder] .flex-column-container{
+    display:-webkit-flex;
+    display:flex;
+    -webkit-flex-direction:column;
+    flex-direction:column;
+}
+
+.dialog-content .hide{
+    display:none;
+}
+
+.dialog-content .full-width{
+    width:100%;
+}
+
+.dialog-content .size-small{
+    font-size:14px;
+}
+
+.dialog-content .gray{
+    color:#666;
+}
+
+.dialog-content .light-gray{
+    color:#999;
+}
+
+.dialog-content .off-white{
+    color:#ddd;
+}
+
+.dialog-content .blue{
+    color:#2196F3;
+}
+
+.dialog-content .margin-bottom-zero{
+    margin-bottom:0 !important;
+}
+
+.dialog-content .refresh{
+    color:#ddd;
+    margin-left:1em;
+    cursor:pointer;
+}
+
+.dialog-content .refresh:hover{
+    color:#4CAF50;
+}
+
+.dialog-content .stationary-icon{
+    position:absolute;
+    top:0;
+    right:16px;
+}
+
+.dialog-content .right{
+    -webkit-justify-content: flex-end;
+    justify-content: flex-end;
+}
+
+.dialog-content .link{
+    color:#4CAF50;
+    cursor:pointer;
+}
+
+.dialog-content .primary-icon{
+    color:#4CAF50;
+}
+
+.dialog-content .link:hover{
+    color:#81C784
+}
+
+.dialog-content .size-14{
+     font-size:14px;
+}
+
+.dialog-content .max-width-100{
+    width:100px;
+    max-width:100%''
+}
+
+.dialog-content .max-width-150{
+    width:150px;
+    max-width:100%''
+}
+
+.dialog-content .max-width-200{
+    width:200px;
+    max-width:100%''
+}
+
+.dialog-content .message{
+    font-size:14px;
+    padding:1em;
+    color:#666;
+}
+
+.dialog-content .sort{
+    font-size:14px;
+    color:#ccc;
+    cursor:pointer;
+}
+
+.dialog-content .sort:hover{
+    color:#4CAF50;
+}
+
+.dialog-content .space-between{
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+
+.dialog-content .center{
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.dialog-content .align-center{
+    -webkit-align-items: center;
+    align-items: center;
+}
+
+.dialog-content .flex-container{
+    display:-webkit-flex;
+    display:flex;
+}
+
+.dialog-content .flex-wrap{
+    -webkit-flex-wrap:wrap;
+    flex-wrap:wrap;
+}
+
+.dialog-content .flex-column-container{
+    display:-webkit-flex;
+    display:flex;
+    -webkit-flex-direction:column;
+    flex-direction:column;
+}
+
+.dialog-content>header{
+
+}
+
+.dialog-content .apply-padding{
+  padding:1em;
+}
+
+.dialog-content .apply-padding-two{
+    padding:2em;
+}
+
+.dialog-content .no-padding{
+    padding:0;
+}
+
+.dialog-content .form-width{
+    width:450px;
+    max-width:97%;
+}
+
+.dialog-content .form-width>*{
+    margin-bottom:1.5em;
+}
+
+.dialog-content .show-0{
+    display:none;
+}
+
+.dialog-content .padding-top{
+    padding-top:1em;
+}
+
+.dialog-content .section-padding-top{
+    padding-top:100px;
+}
+
+.dialog-content .padding-top-two{
+    padding-top:2em;
+}
+
+.dialog-content .padding-top-three{
+    padding-top:3em;
+}
+
+.dialog-content .apply-margin{
+    margin-top:2em;
+}
+
+.dialog-content>section{
+    padding:1em;
+}
+.dialog-content paper-button{
+    color:#fff;
+    background:#2196F3;
+    margin-top:2em;
+}
+
+.dialog-content md-search{
+    width:280px;
+}
+
+.dialog-content .action-icon{
+    cursor:pointer;
+    color:#aaa;
+}
+
+.dialog-content .action-icon:hover{
+    color:#4CAF50;
+}
+
+.dialog-content .templates-container{
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    padding:2em;
+    padding-top:100px;
+}
+
+.dialog-content .templates-container .template{
+    display:-webkit-flex;
+    display:flex;
+    -webkit-flex-direction: column;
+    flex-direction:column;
+    -webkit-align-items:center;
+    align-items: center;
+    padding:1em;
+    min-height:220px;
+    box-shadow:0 1px 2px rgba(151, 151, 151, 0.58);
+    width:40%;
+    margin-bottom:1em;
+}
+
+.dialog-content .templates-container .template.active{
+    background:#f7f7f7;
+    box-shadow:0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+
+}
+
+.dialog-content .templates-container .template img{
+    height:72px;
+    width:72px;
+    fill: #ccc;
+}
+
+.dialog-content .templates-container .template paper-button{
+    margin-top:auto;
+    padding:.6em .47em !important;
+}
+
+.dialog-content .pages-container{
+    padding-top:160px;
+}
+
+.dialog-content .page{
+    border-top:1px solid #f2f2f2;
+    display:-webkit-flex;
+    display:flex;
+    width:100%;
+}
+
+.dialog-content .page:first-of-type{
+    border-top:1px solid transparent;
+}
+
+.dialog-content .page>.ckbox{
+    width:20%;
+    padding:1em;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.dialog-content .page>.actions{
+    width:20%;
+    padding:1em;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-justify-content: space-around;
+    justify-content: space-around;
+}
+
+.dialog-content .page>.summary{
+    width:80%;
+    padding:1em;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-flex-direction:column;
+    flex-direction:column;
+}
+
+.dialog-content .page>.summary>*{
+    margin-bottom:.5em;
+}
+
+.dialog-content .page>.summary>md-input{
+    max-width:250px;
+}
+
+.dialog-content .categories{
+    padding-top:110px;
+}
+
+.dialog-content .pagination{
+    list-style: none;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-align-items: center;
+    align-items: center;
+    color:#757575
+}
+
+.dialog-content .pagination li{
+    margin-right:.5em;
+    position:relative;
+}
+
+.dialog-content .pagination li span{
+    cursor:pointer;
+}
+
+.dialog-content md-number .press-button.md-number {
+    padding: .3em .2em;
+    min-width: 50px;
+}
+
+.dialog-content .icon-action-label{
+    padding-right:1em;
+    color:#aaa;
+    cursor:pointer;
+}
+
+.dialog-content .icon-action-label>*{
+    color:#aaa !important;
+}
+
+.dialog-content .icon-action-label:hover>*{
+    color:#4CAF50 !important;
+}
+
+@media only screen and (max-width: 640px) and (min-width: 220px) {
+    .dialog-content md-search{
+        width:280px;
+    }
+    [content-placeholder] .svg-icon{
+        width:260px;
+    }
+    [content-placeholder] .svg-icon.large{
+        width:300px;
+    }
+
+    .dialog-content .page>.summary>md-input{
+        max-width:200px;
+    }
+
+    .dialog-content .page>.actions{
+        width:25%;
+    }
+}

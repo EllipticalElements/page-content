@@ -1,0 +1,41 @@
+<div class="dialog-content">
+  <header class="apply-padding stationary">
+    <h5><span class="blue">{count}</span> Drafts</h5>
+    <span class="size-14 gray">Click a draft to review. Check the box to delete.</span>
+    <div class="flex-container space-between">
+      <div class="flex-container align-center">
+        <md-search placeholder="Search" data-id="draftsSearch" data-value="{value}" data-type="drafts"></md-search>
+        <span class="icon-refresh refresh" refresh data-id="draft"></span>
+      </div>
+      {>"{paginationTemplate}" direction="right" type="draft" /}
+    </div>
+  </header>
+  <section class="flex-container flex-wrap pages-container no-padding" pages-container>
+    {#pages}
+      <div class="page" data-page-section="{id}">
+        <div class="ckbox">
+          <md-checkbox data-id="{id}"></md-checkbox>
+        </div>
+        <div class="summary">
+          <span data-page-link="{id}" class="link">{title}</span>
+          <div class="size-small margin-bottom-zero">
+            <span class="light-gray">Category: </span> <span class="blue">{category}</span>
+          </div>
+          <div class="size-small margin-bottom-zero">
+            <span class="light-gray">Version: </span> <span>{version}</span>
+          </div>
+          <div class="size-small margin-bottom">
+            <span class="light-gray">Last Updated: </span> <span>{@formatDate value="{dateUpdated}" /}</span>
+          </div>
+          <div class="size-small margin-bottom-zero action-icon max-width-150" data-view-settings="{id}" data-type="drafts">
+            <iron-icon icon="settings"></iron-icon>
+            <span>Settings</span>
+          </div>
+        </div>
+      </div>
+    {/pages}
+    {^pages}
+      <p class="message">There are currently no drafts available...</p>
+    {/pages}
+  </section>
+</div>
