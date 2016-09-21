@@ -1522,7 +1522,7 @@
       this._newPageKeywords=keywords;
       var templates = this._pageTemplateService.get();
       template.render(templateId,{templates:templates}, function (err, out) {
-        self._openDialog(out,'Create','create',null,false,700,600,false,true,true,'Cancel');
+        self._openDialog(out,'Create','create','create',false,700,600,false,true,true,'Cancel');
       });
     },
 
