@@ -1,4 +1,4 @@
-# CONTENT-APP
+# PAGE-CONTENT
 
 
 
@@ -6,7 +6,7 @@
 
 ``` bash
 
-bower install content-app --save
+bower install page-content --save
 
 ```
 
@@ -14,9 +14,9 @@ bower install content-app --save
 
 ```html
 
-<link rel="import" href="bower_components/content-app/content-app.html">
+<link rel="import" href="bower_components/page-content/page-content.html">
 
-<content-app></content-app>
+<page-content></page-content>
 ```
 
 
