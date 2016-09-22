@@ -1,11 +1,12 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../gsap-import/gsap-import.html">
 <link rel="stylesheet" href="styles.css">
 <link rel="import" href="../elliptical-polymer-behaviors/component-behavior.html">
 <link rel="import" href="../elliptical-polymer-behaviors/history-behavior.html">
 <link rel="import" href="../elliptical-polymer-behaviors/service-behavior.html">
 <link rel="import" href="../elliptical-polymer-behaviors/viewdata-behavior.html">
 <link rel="import" href="../elliptical-polymer-behaviors/async-behavior.html">
+<link rel="import" href="../elliptical-polymer-behaviors/template-extensions-behavior.html">
+<link rel="import" href="../elliptical-polymer-behaviors/animation-behavior.html">
 <link rel="import" href="../elliptical-date-helpers/elliptical-date-helpers.html">
 <link rel="import" href="../media-manager/media-manager.html">
 <link rel="import" href="../paper-fab/paper-fab.html">
@@ -105,7 +106,8 @@
 
     is: 'page-content',
 
-    behaviors: [Elliptical.ComponentBehavior, Elliptical.HistoryBehavior, Elliptical.ServiceBehavior,Elliptical.ViewDataBehavior,Elliptical.AsyncBehavior],
+    behaviors: [Elliptical.ComponentBehavior, Elliptical.HistoryBehavior, Elliptical.ServiceBehavior,
+      Elliptical.ViewDataBehavior,Elliptical.AsyncBehavior,Elliptical.TemplateExtensionsBehavior,Elliptical.AnimationBehavior],
 
     properties: {
 
@@ -194,11 +196,6 @@
         value:150
       },
 
-      _tl: {
-        type: Object,
-        value: null
-      },
-
       _dialogWidth: {
         type: String,
         value: '500px'
@@ -207,11 +204,6 @@
       _dialogHeight: {
         type: String,
         value: '400px'
-      },
-
-      _template: {
-        type: Object,
-        value: null
       },
 
       _newPageTitle: {
@@ -313,15 +305,16 @@
       this._initEditMode();
       //init the toolbar display state
       this._initUIDisplayMode();
-      this._template = elliptical.extensions.template;
-      this._tl = new TimelineMax();
+      //init template extensions
+      this._setTemplateExtensions();
+      //init animation timeline
+      this._setTimeline();
       this._events();
       //if history, activate single page behavior for content pages
       if (!this.disableHistory) this._historyInit();
       //init service injection
       this._setInjectedServices();
       //if no page id defined, set page id from location action
-      if(!this.pageId)  this._setPageId();
       this._setAsync();
       if(this.dataBindComponents) {
         if(this.viewDataProp){
@@ -329,7 +322,6 @@
           this._bindPageComponentsFromViewData(this.viewDataProp);
         } else this._bindPageComponentsFromService();
       }
-
     },
 
     /**
@@ -388,6 +380,7 @@
      *   @param {object} event
      */
     _onBottomMenuPress: function (event) {
+      var pageId;
       var templateId;
       this.$.bottomBar.clearActive();
       var id = event.detail.id;
@@ -404,10 +397,12 @@
           this._pagesOpenDialog(true, templateId, 'pages',false);
           break;
         case 'settings':
-          this._pageSettingsDialog(this.pageId);
+          pageId=this._getPageId();
+          this._pageSettingsDialog(pageId);
           break;
         case 'delete':
-          this._pageDelete(this.pageId);
+          pageId=this._getPageId();
+          this._pageDelete(pageId);
           break;
         case 'save':
           this._savePageContent();
@@ -434,10 +429,10 @@
         case 'create':
           this._newPageCreate(data);
           break;
-        case 'delete-pages':
+        case 'pages':
           this._deletePages('pages');
           break;
-        case 'delete-drafts':
+        case 'drafts':
           this._deletePages('drafts');
           break;
         case 'settings':
@@ -536,7 +531,6 @@
      *   @param {string} id
      */
     _onPageCreateSuccess: function (id) {
-      this.pageId=id;
       var Location = this._locationService;
       this._hideDialog();
       this._resetPrivateVariables();
@@ -873,6 +867,18 @@
       else return placeholder;
     },
 
+    /**
+     *  Get page id from location route
+     *  @returns {string}
+     */
+    _getPageId:function(){
+      if(this.pageId) return this.pageId;
+      var Location = this._locationService;
+      var params = Location.params(this.pageRoute + '/:id');
+      if (params) return params.id;
+      else return null;
+    },
+
 
     /**
      *  Save edit mode state in session storage
@@ -944,7 +950,6 @@
      *  Route to page
      */
     _goTo: function (id) {
-      this.pageId = id;
       var url = this.pageRoute + '/' + id;
       var Location = this._locationService;
       Location.href = url;
@@ -966,6 +971,7 @@
         if (id) this.pageId = id;
       }
     },
+
 
 
     /**
@@ -1360,7 +1366,7 @@
     _bindPageComponentsFromService:function(){
       var self=this;
       var delay=this.serviceDelay;
-      var id=this.pageId;
+      var id=this._getPageId();
       if(!id){
         console.warn('WARNING: data binding page components through service call requires a page id set in the page-content element attribute');
         return;
@@ -1386,7 +1392,7 @@
 
     /***************************** DIALOG HELPERS **********************************************************************
 
-    /**
+     /**
      *  Cancel dialog
      */
     _cancelDialog: function () {
@@ -1449,7 +1455,7 @@
     /***************************** DIALOG ACTIONS **********************************************************************
 
 
-    /**
+     /**
      *   Load create new page in dialog
      */
     _newPageOpenDialog: function () {
@@ -1619,7 +1625,7 @@
       var funcArray = [];
       var fireEvent=this._fireEvent.bind(this);
       ids.forEach(function (i) {
-        if (keyLowerCase) i = t.toLowerCase();
+        if (keyLowerCase) i = i.toLowerCase();
         funcArray.push(function (callback) {
           Service.delete({id:i}, callback);
           fireEvent('page-delete',{id:i});
@@ -1707,7 +1713,7 @@
      */
     _publishPageContent: function () {
       var self = this;
-      var id = this.pageId;
+      var id = this._getPageId();
       //get page
       this._getPage(id, function (err, data) {
         //if no error fetching and page data exists
@@ -1736,14 +1742,19 @@
      *
      */
     _createPartialPage:function(){
+      var pageId=this.pageId;
+      if(!pageId){
+        this._showNotification('Error: publishing partial page requires page id set in the component');
+        return;
+      }
       var self=this;
       var data=this._getPageModel();
       data.isContentPage=false;
       data.isPublished=true;
       data.content = self._getPageContent();
-      data.id=this.pageId;
+      data.id=pageId;
       if(this.pageTitle) data.title=this.pageTitle;
-      else data.title=this.pageId.replace(/-/g,'');
+      else data.title=pageId.replace(/-/g,'');
       this._createPage(data,function(err,page){
         //if not error
         if(!err){
@@ -1759,7 +1770,7 @@
      */
     _savePageContent: function () {
       var self = this;
-      var id = this.pageId;
+      var id = this._getPageId();
       this._getPage(id, function (err, data) {
         if (!err) {
           data.content = self._getPageContent();
@@ -1858,24 +1869,3 @@
   });
 
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,6 +1,6 @@
 {
   "name": "page-content",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "authors": [
     "S. Francis"
   ],
@@ -38,7 +38,6 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.0.0",
-    "gsap-import": "~1.0.1",
     "elliptical-polymer-behaviors": "~1.2.1",
     "elliptical-date-helpers": "~1.0.6",
     "media-manager":"~1.0.0",
