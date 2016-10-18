@@ -74,7 +74,7 @@
   </style>
   <template>
     <md-dialog id="dialog"></md-dialog>
-    <media-manager class="hide" id="mediaManager" use-query-string="[[useQueryString]]"></media-manager>
+    <media-manager class="hide" id="mediaManager" use-query-string="[[useQueryString]]" post-url="[[postUrl]]"></media-manager>
     <paper-fab icon="create" id="fabAction" on-tap="_onFabAction" class="hide-fab"></paper-fab>
     <md-bottom-bar id="bottomBar">
       <grid-row>
@@ -194,6 +194,11 @@
       serviceDelay:{
         type:Number,
         value:150
+      },
+
+      postUrl:{
+        type:String,
+        value:null
       },
 
       _dialogWidth: {
