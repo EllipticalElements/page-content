@@ -30,6 +30,7 @@
   --page-content-fab-background: #60bc57
   --page-content-icon-label-active-color:#1E88E5
   --page-content-transition: all 0.25s linear
+  --page-content-paper-fab-z-index: 99
 -->
 
 <style>
@@ -61,6 +62,7 @@
       right:32px;
       --paper-fab-background:var(--page-content-fab-background, #60bc57);
       transition: var(--page-content-transition, all 0.15s linear);
+      z-index:var(--page-content-paper-fab-z-index, 99);
     }
 
     :host paper-fab.hide-fab{
