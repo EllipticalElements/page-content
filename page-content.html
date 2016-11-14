@@ -76,7 +76,7 @@
   </style>
   <template>
     <md-dialog id="dialog"></md-dialog>
-    <media-manager class="hide" id="mediaManager" use-query-string="[[useQueryString]]" post-url="[[postUrl]]"></media-manager>
+    <media-manager class="hide" id="mediaManager" query-string-width="[[queryStringWidth]]" post-url="[[postUrl]]"></media-manager>
     <paper-fab icon="create" id="fabAction" on-tap="_onFabAction" class="hide-fab"></paper-fab>
     <md-bottom-bar id="bottomBar">
       <grid-row>
@@ -130,7 +130,7 @@
 
       templatePath: {
         type: String,
-        value: 'components.page-content.templates.'
+        value: '/components.page-content.templates.'
       },
 
       pageRoute: {
@@ -173,9 +173,9 @@
         value: '[content-placeholder]'
       },
 
-      useQueryString: {
-        type: Boolean,
-        value: false
+      queryStringWidth: {
+        type: Number,
+        value: 0
       },
 
       disablePageMode: {
