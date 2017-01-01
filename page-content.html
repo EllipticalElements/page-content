@@ -31,6 +31,7 @@
   --page-content-icon-label-active-color:#1E88E5
   --page-content-transition: all 0.25s linear
   --page-content-paper-fab-z-index: 99
+  --page-content-grid-width:1300px
 -->
 
 <style>
@@ -41,6 +42,36 @@
 
 <dom-module id="page-content">
   <style>
+    :host.hide{
+      display:none;
+    }
+    :host .row{
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 0;
+      margin-bottom: 0;
+      max-width: var(--page-content-grid-width,1300px);
+      width: 100%;
+    }
+    :host .row:before{
+      content: " ";
+      display: table;
+    }
+    :host .row:after{
+      content: " ";
+      display: table;
+    }
+    :host .row>.columns{
+      display: -webkit-flex;
+      display: flex;
+      -webkit-justify-content: space-around;
+      justify-content: space-around;
+      -webkit-align-items: center;
+      align-items: center;
+      height: 100%;
+      padding-left: 15px;
+      padding-right: 15px;
+    }
     :host md-icon-label {
       --md-icon-label-active-color:var(--page-content-icon-label-active-color, #1E88E5);
     }
@@ -54,6 +85,11 @@
     :host md-bottom-bar.active{
       margin-bottom:0;
       opacity:1;
+    }
+
+    :host.hide-component md-bottom-bar.active{
+      margin-bottom:-60px;
+      opacity:0;
     }
 
     :host paper-fab{
@@ -76,18 +112,18 @@
   </style>
   <template>
     <md-dialog id="dialog"></md-dialog>
-    <media-manager class="hide" id="mediaManager" query-string-width="[[queryStringWidth]]" post-url="[[postUrl]]"></media-manager>
+    <media-manager class="hide" id="mediaManager" query-string-width="[[queryStringWidth]]" post-url="[[postUrl]]" basic-token="[[basicToken]]"></media-manager>
     <paper-fab icon="create" id="fabAction" on-tap="_onFabAction" class="hide-fab"></paper-fab>
     <md-bottom-bar id="bottomBar">
-      <grid-row>
-        <grid-columns class="default-12">
+      <div class="row">
+        <div class="columns">
           <md-icon-label icon="image:add-a-photo" label="Media" data-id="media" id="mediaManagerIcon"></md-icon-label>
           <md-icon-label icon="visibility-off" label="Toggle" class="disable-active-state" id="iconVisibility" data-id="visibility"></md-icon-label>
           <md-icon-label icon="social:pages" label="Pages" data-id="pages" id="pagesIcon"></md-icon-label>
           <md-icon-label icon="editor:publish" label="Publish" class="disable-active-state" data-id="publish"></md-icon-label>
           <md-icon-label icon="exit-to-app" label="Exit" class="disable-active-state" data-id="exit" on-tap="_onExit"></md-icon-label>
-        </grid-columns>
-      </grid-row>
+        </div>
+      </div>
     </md-bottom-bar>
     <md-bottom-menu id="bottomMenu" menu-height="320px">
       <bottom-menu data-id="pages" title="Pages">
@@ -203,6 +239,36 @@
         value:null
       },
 
+      basicToken:{
+        type:String,
+        value:null
+      },
+
+      hideComponents:{
+        type:Boolean,
+        value:false
+      },
+
+      pagePublishedMessage:{
+        type:String,
+        value:'Page successfully published'
+      },
+
+      pageFailureMessage:{
+        type:String,
+        value:'publishing page failed'
+      },
+
+      pageSavedMessage:{
+        type:String,
+        value:'Page successfully saved'
+      },
+
+      pageSavedFailureMessage:{
+        type:String,
+        value:''
+      },
+
       _dialogWidth: {
         type: String,
         value: '500px'
@@ -306,6 +372,7 @@
      *  Ready
      */
     ready: function () {
+      if(this.hideComponents) this._hideComponents();
       //if disablePageMode is set, disable history
       if(this.disablePageMode) this.disableHistory=true;
       //init the page components edit state
@@ -785,6 +852,11 @@
       if(displayMode)this._showBottomBar();
       else this._showFabButton();
       if(this.disablePageMode) this.$.pagesIcon.classList.add('hide');
+    },
+
+    _hideComponents:function(){
+      this.classList.add('hide');
+      this.$.mediaManager.disableOnload=true;
     },
 
 
@@ -1733,13 +1805,13 @@
           self._savePage(data,function(err,page){
             //if not error
             if(!err){
-              self._showNotification('Page successfully published');
+              self._showNotification(self.pagePublishedMessage);
               if (data.isContentPage) self._fireEvent('page-publish',data);
-            }else self._showNotification('Error: publishing page failed');
+            }else self._showNotification('Error: ' + self.pageFailureMessage);
           });
         } else {
           if (self.disablePageMode) self._createPartialPage();//else if disablePageMode set, pass off to method
-          else self._showNotification('Error: publishing page failed. Page does not exist.'); //else, failed to get page
+          else self._showNotification('Error: ' + this.pageFailureMessage + '. Page does not exist.'); //else, failed to get page
         }
       });
     },
@@ -1765,9 +1837,9 @@
       this._createPage(data,function(err,page){
         //if not error
         if(!err){
-          self._showNotification('Page successfully published');
+          self._showNotification(self.pagePublishedMessage);
           self._fireEvent('page-publish',data);
-        }else self._showNotification('Error: publishing page failed');
+        }else self._showNotification('Error: ' + self.pageFailureMessage);
       });
     },
 
@@ -1782,8 +1854,8 @@
         if (!err) {
           data.content = self._getPageContent();
           self._savePage(data);
-          self._showNotification('Page successfully saved');
-        } else self._showNotification('Error: page save failed');
+          self._showNotification(self.pageSavedMessage);
+        } else self._showNotification('Error: ' + self.pageSavedFailureMessage);
       });
     },
 
@@ -1867,11 +1939,13 @@
      */
     _hideMediaManager: function () {
 
-    }
+    },
 
 
     /***************************** PUBLIC METHODS *********************************************************************/
-
+    publish:function(){
+      this._publishPageContent();
+    }
 
   });
 
