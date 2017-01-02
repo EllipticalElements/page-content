@@ -1793,12 +1793,13 @@
     _publishPageContent: function () {
       var self = this;
       var id = this._getPageId();
+      var content=this._getPageContent();
       //get page
       this._getPage(id, function (err, data) {
         //if no error fetching and page data exists
         if (!err && data) {
           data.isPublished = true;
-          data.content = self._getPageContent();
+          data.content = content;
           //if not pages mode, set the bit to false
           if(self.disablePageMode) data.isContentPage=false;
           //save
