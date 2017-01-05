@@ -174,6 +174,11 @@
         value: '/Page/Index'
       },
 
+      pageCategory:{
+        type:String,
+        value:null
+      },
+
       pageSize: {
         type: Number,
         value: 50
@@ -269,6 +274,11 @@
         value:''
       },
 
+      nonQueryable:{
+        type:Boolean,
+        value:false
+      },
+
       _dialogWidth: {
         type: String,
         value: '500px'
@@ -362,6 +372,11 @@
       _pagesType:{
         type:String,
         value:null
+      },
+
+      _queryable:{
+        type:Boolean,
+        value:true
       }
 
     },
@@ -372,6 +387,7 @@
      *  Ready
      */
     ready: function () {
+      if(this.nonQueryable) this._queryable=false;
       if(this.hideComponents) this._hideComponents();
       //if disablePageMode is set, disable history
       if(this.disablePageMode) this.disableHistory=true;
@@ -583,8 +599,8 @@
     _onSearchRefresh: function (event) {
       var target = event.target;
       var id = target.dataset.id;
-      var templateId = (id === 'page') ? 'pages-view' : 'drafts-view';
-      var isPublished = (id === 'page');
+      var templateId = (id === 'pages') ? 'pages-view' : 'drafts-view';
+      var isPublished = (id === 'pages');
       templateId = this.templatePath + templateId;
       this._loadPageChange(isPublished, templateId, 1, undefined, '');
     },
@@ -637,7 +653,7 @@
       var type = target.dataset.type;
       var detail = event.detail;
       var query ={'sw_title':detail.value};
-      var isPublished = (type === 'published');
+      var isPublished = (type === 'pages');
       var templateId = (isPublished) ? 'pages-view' : 'drafts-view';
       templateId = this.templatePath + templateId;
       this._loadPageChange(isPublished, templateId, 1, query, detail.value);
@@ -674,7 +690,10 @@
     _onPageLink: function (event) {
       var target = event.target;
       var id = target.dataset.pageLink;
-      if (id) this._goTo(id);
+      var isContentPage=target.dataset.contentPage;
+      var route=target.dataset.route;
+      if(!isContentPage) this._goToHref(route)
+      else if (id) this._goTo(id);
       this._hideDialog();
     },
 
@@ -773,7 +792,8 @@
       var id=target.dataset.viewSettings;
       this._pagesType=target.dataset.type;
       this._pageSettingsRender(id,'',function(err,out){
-        self._openDialog(out,'Save','settings-return',null,false,700,600,true,true,false);
+        self._openDialog(out,'Save','settings-return','settings-return',false,700,600,true,true,false,'Cancel');
+
       });
     },
 
@@ -1026,17 +1046,20 @@
 
 
     /**
-     *  Route to page
+     *  Client-side Route to page
      */
     _goTo: function (id) {
       var url = this.pageRoute + '/' + id;
       var Location = this._locationService;
       Location.href = url;
-      this._getPage(id, function (err, p) {
-
-      });
     },
 
+    /**
+     *   standard new http page request
+     */
+    _goToHref: function(route){
+      if(route) location.href=route;
+    },
 
     /**
      *  Set current page public prop
@@ -1230,6 +1253,11 @@
      */
     _savePage: function (entity, callback) {
       if (!this.disableKeyLowerCase) entity.id = entity.id.toLowerCase();
+      entity.route=this.pageRoute;
+      if(this.pageCategory) entity.category=this.pageCategory;
+      entity.queryable=this._queryable;
+      //if not pages mode, set the bit to false
+      if(this.disablePageMode) entity.isContentPage=false;
       var Page = this._pageService;
       Page.put(entity, callback);
     },
@@ -1241,6 +1269,9 @@
     _createPage: function (entity, callback) {
       if (!this.disableKeyLowerCase) entity.id = entity.id.toLowerCase();
       entity.isContentPage = !(this.disablePageMode);
+      entity.route=this.pageRoute;
+      entity.queryable=self._queryable;
+      if(this.pageCategory) entity.category=this.pageCategory;
       var Page = this._pageService;
       Page.post(entity, callback);
     },
@@ -1629,6 +1660,7 @@
       model.category=this._newPageCategory;
       model.keywords=this._newPageKeywords;
       model.content = objTemplate.placeholder;
+      model.route=this.pageRoute;
       this._createPage(model, function (err, data) {
         if (!err) self._onPageCreateSuccess(id);
         else self._onPageCreateError(err);
@@ -1800,8 +1832,6 @@
         if (!err && data) {
           data.isPublished = true;
           data.content = content;
-          //if not pages mode, set the bit to false
-          if(self.disablePageMode) data.isContentPage=false;
           //save
           self._savePage(data,function(err,page){
             //if not error
