@@ -279,6 +279,11 @@
         value:false
       },
 
+      showToolbar:{
+        type:Boolean,
+        value:false
+      },
+
       _dialogWidth: {
         type: String,
         value: '500px'
@@ -391,6 +396,7 @@
       if(this.hideComponents) this._hideComponents();
       //if disablePageMode is set, disable history
       if(this.disablePageMode) this.disableHistory=true;
+      if(this.showToolbar) this._setSessionDisplayMode(true);
       //init the page components edit state
       this._initEditMode();
       //init the toolbar display state
@@ -793,7 +799,7 @@
       this._pagesType=target.dataset.type;
       this._pageSettingsRender(id,'',function(err,out){
         self._openDialog(out,'Save','settings-return','settings-return',false,700,600,true,true,false,'Cancel');
-
+       
       });
     },
 
@@ -1053,13 +1059,13 @@
       var Location = this._locationService;
       Location.href = url;
     },
-
-    /**
-     *   standard new http page request
-     */
-    _goToHref: function(route){
+ 
+   /**
+    *   standard new http page request
+    */
+   _goToHref: function(route){
       if(route) location.href=route;
-    },
+   },
 
     /**
      *  Set current page public prop
@@ -1270,7 +1276,7 @@
       if (!this.disableKeyLowerCase) entity.id = entity.id.toLowerCase();
       entity.isContentPage = !(this.disablePageMode);
       entity.route=this.pageRoute;
-      entity.queryable=self._queryable;
+      entity.queryable=this._queryable;
       if(this.pageCategory) entity.category=this.pageCategory;
       var Page = this._pageService;
       Page.post(entity, callback);
