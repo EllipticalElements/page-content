@@ -112,7 +112,7 @@
   </style>
   <template>
     <md-dialog id="dialog"></md-dialog>
-    <media-manager class="hide" id="mediaManager" query-string-width="[[queryStringWidth]]" post-url="[[postUrl]]" basic-token="[[basicToken]]"></media-manager>
+    <media-manager class="hide" id="mediaManager" query-string-width="[[queryStringWidth]]" post-url="[[postUrl]]" basic-token="[[basicToken]]" search-property="[[searchProperty]]"></media-manager>
     <paper-fab icon="create" id="fabAction" on-tap="_onFabAction" class="hide-fab"></paper-fab>
     <md-bottom-bar id="bottomBar">
       <div class="row">
@@ -284,6 +284,11 @@
         value:false
       },
 
+      searchProperty:{
+        type:String,
+        value:'id'
+      },
+
       _dialogWidth: {
         type: String,
         value: '500px'
@@ -397,6 +402,7 @@
       //if disablePageMode is set, disable history
       if(this.disablePageMode) this.disableHistory=true;
       if(this.showToolbar) this._setSessionDisplayMode(true);
+      this._setMediaManager();
       //init the page components edit state
       this._initEditMode();
       //init the toolbar display state
@@ -799,7 +805,7 @@
       this._pagesType=target.dataset.type;
       this._pageSettingsRender(id,'',function(err,out){
         self._openDialog(out,'Save','settings-return','settings-return',false,700,600,true,true,false,'Cancel');
-       
+
       });
     },
 
@@ -909,6 +915,10 @@
       $.each(components, function (i, component) {
         if(component.showComponent) component.showComponent();
       });
+    },
+
+    _setMediaManager:function(){
+      this.$.mediaManager.searchProperty=this.searchProperty;
     },
 
 
@@ -1059,13 +1069,13 @@
       var Location = this._locationService;
       Location.href = url;
     },
- 
-   /**
-    *   standard new http page request
-    */
-   _goToHref: function(route){
+
+    /**
+     *   standard new http page request
+     */
+    _goToHref: function(route){
       if(route) location.href=route;
-   },
+    },
 
     /**
      *  Set current page public prop
@@ -1263,7 +1273,10 @@
       if(this.pageCategory) entity.category=this.pageCategory;
       entity.queryable=this._queryable;
       //if not pages mode, set the bit to false
-      if(this.disablePageMode) entity.isContentPage=false;
+      if(this.disablePageMode) {
+        entity.isContentPage=false;
+        entity.template='None';
+      }
       var Page = this._pageService;
       Page.put(entity, callback);
     },
@@ -1275,6 +1288,7 @@
     _createPage: function (entity, callback) {
       if (!this.disableKeyLowerCase) entity.id = entity.id.toLowerCase();
       entity.isContentPage = !(this.disablePageMode);
+      if(this.disablePageMode) entity.template='None';
       entity.route=this.pageRoute;
       entity.queryable=this._queryable;
       if(this.pageCategory) entity.category=this.pageCategory;
